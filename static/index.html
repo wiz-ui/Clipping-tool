@@ -1,0 +1,536 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>VerticalStream AI Pro — All-in-One Stream Clipper Studio</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet" />
+  <style>
+    .glow-purple { box-shadow: 0 0 50px -10px rgba(147, 51, 234, 0.45); }
+    .glow-card { box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.4); }
+  </style>
+</head>
+<body class="bg-[#080c14] text-slate-100 min-h-screen flex flex-col font-sans selection:bg-purple-500 selection:text-white">
+
+  <!-- Header -->
+  <header class="border-b border-slate-800/80 bg-[#0b101c]/80 backdrop-blur-xl sticky top-0 z-50 px-6 py-3.5 flex items-center justify-between">
+    <div class="flex items-center space-x-3.5">
+      <div class="w-11 h-11 rounded-2xl bg-gradient-to-tr from-purple-600 via-pink-600 to-amber-500 flex items-center justify-center shadow-lg shadow-purple-600/30">
+        <i class="fa-solid fa-scissors text-white text-xl"></i>
+      </div>
+      <div>
+        <div class="flex items-center space-x-2">
+          <h1 class="text-xl font-extrabold tracking-tight bg-gradient-to-r from-purple-400 via-pink-300 to-indigo-300 bg-clip-text text-transparent">VerticalStream AI</h1>
+          <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-purple-500/20 text-purple-300 border border-purple-500/30 uppercase tracking-wider">Ultimate Studio</span>
+        </div>
+        <p class="text-xs text-slate-400">Facecam Split • Ambient Blur • Color LUTs • Animated Subs • Anti-Copyright</p>
+      </div>
+    </div>
+    
+    <div class="flex items-center space-x-2 text-xs bg-slate-900/90 border border-slate-800 px-3 py-1.5 rounded-xl">
+      <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+      <span class="text-slate-300 font-medium" id="hwLabel">NVIDIA GTX 1650 NVENC Ready</span>
+    </div>
+  </header>
+
+  <!-- Main Content -->
+  <main class="flex-1 max-w-5xl w-full mx-auto p-4 sm:p-6 lg:p-8 flex flex-col justify-center">
+
+    <div class="text-center mb-8">
+      <div class="inline-flex items-center space-x-2 px-3.5 py-1 rounded-full bg-purple-500/10 border border-purple-500/20 text-xs text-purple-300 mb-3 font-semibold">
+        <i class="fa-solid fa-sparkles text-amber-400"></i>
+        <span>Full Suite • Facecam Stacking • Subtitles • Color Grading • Audio Peak AI</span>
+      </div>
+      <h2 class="text-3xl sm:text-5xl font-black tracking-tight text-white mb-3">
+        Convert Any Stream to <br class="hidden sm:inline" />
+        <span class="bg-gradient-to-r from-purple-400 via-pink-400 to-amber-400 bg-clip-text text-transparent">Viral Vertical 9:16 Shorts</span>
+      </h2>
+      <p class="text-slate-400 max-w-2xl mx-auto text-sm sm:text-base">
+        Paste any Twitch, YouTube, or Kick stream link. Fast direct seeking, visual facecam locator, multi-language speech recognition, cinematic grading, and copyright evasion.
+      </p>
+    </div>
+
+    <!-- Main Studio Card -->
+    <div class="bg-[#0e1424]/90 border border-slate-800 rounded-3xl p-6 sm:p-8 glow-purple glow-card backdrop-blur-2xl">
+      <form id="clipForm" class="space-y-6">
+        
+        <!-- Stream URL & Auto Detect -->
+        <div>
+          <label class="block text-xs font-bold uppercase tracking-wider text-slate-300 mb-2.5 flex items-center justify-between">
+            <span><i class="fa-solid fa-link text-purple-400 mr-1.5"></i> Stream URL</span>
+            <span class="text-[11px] text-purple-400 font-semibold cursor-pointer hover:underline" id="probeBtn">
+              <i class="fa-solid fa-wand-magic-sparkles mr-1"></i> Auto-Detect Cam Box from Stream
+            </span>
+          </label>
+          <div class="relative group">
+            <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-slate-500 group-focus-within:text-purple-400 transition">
+              <i class="fa-brands fa-youtube text-lg"></i>
+            </div>
+            <input 
+              type="url" 
+              id="streamUrl" 
+              required
+              placeholder="https://www.youtube.com/watch?v=... or https://www.twitch.tv/videos/..." 
+              class="w-full pl-12 pr-4 py-3.5 bg-slate-950/80 border border-slate-700/80 rounded-2xl text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-purple-500/80 focus:border-purple-500 transition text-sm sm:text-base font-medium shadow-inner"
+            />
+          </div>
+        </div>
+
+        <!-- Visual Facecam Locator Preview (Only active when Split Cam is selected) -->
+        <div id="visualCropContainer" class="p-4 bg-slate-950/70 border border-slate-800 rounded-2xl space-y-3">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-bold text-slate-200 flex items-center">
+              <i class="fa-solid fa-crosshairs text-pink-400 mr-1.5"></i> Streamer Camera Location
+            </span>
+            <span class="text-[11px] text-slate-400">Green box = Top Split Section</span>
+          </div>
+
+          <!-- Video Canvas Mockup -->
+          <div class="relative w-full aspect-[16/9] bg-slate-900 border border-slate-700/60 rounded-xl overflow-hidden" id="canvasBox">
+            <img id="streamSnapshot" class="w-full h-full object-cover hidden" alt="Snapshot" />
+            <div id="noSnapshotMsg" class="w-full h-full flex flex-col items-center justify-center text-slate-500 text-xs p-4 text-center">
+              <i class="fa-solid fa-image text-3xl mb-2 text-slate-600"></i>
+              <span>Click "Auto-Detect Cam Box" or choose a preset below to align the camera box.</span>
+            </div>
+
+            <!-- Cam Highlight Box -->
+            <div id="camHighlightBox" class="absolute border-2 border-emerald-400 bg-emerald-500/20 rounded shadow-lg transition-all duration-200" style="top: 1.5%; left: 1%; width: 33%; height: 36%;">
+              <span class="absolute top-1 left-1.5 bg-emerald-950/90 text-emerald-300 font-bold px-1.5 py-0.5 rounded text-[9px] border border-emerald-500/40">
+                <i class="fa-solid fa-video mr-1"></i> Streamer Cam
+              </span>
+            </div>
+          </div>
+
+          <!-- Presets Buttons -->
+          <div class="flex flex-wrap items-center gap-2 pt-1">
+            <span class="text-[11px] text-slate-400 font-medium mr-1">Camera Presets:</span>
+            <button type="button" onclick="setPreset('top_left')" class="px-2.5 py-1 text-xs bg-slate-900 hover:bg-slate-800 border border-emerald-500/40 rounded-lg text-emerald-300 font-semibold transition">
+              Top-Left Corner
+            </button>
+            <button type="button" onclick="setPreset('top_right')" class="px-2.5 py-1 text-xs bg-slate-900 hover:bg-slate-800 border border-slate-700 rounded-lg text-slate-300 transition">
+              Top-Right Corner
+            </button>
+            <button type="button" onclick="setPreset('bottom_left')" class="px-2.5 py-1 text-xs bg-slate-900 hover:bg-slate-800 border border-slate-700 rounded-lg text-slate-300 transition">
+              Bottom-Left Corner
+            </button>
+            <button type="button" onclick="setPreset('bottom_right')" class="px-2.5 py-1 text-xs bg-slate-900 hover:bg-slate-800 border border-slate-700 rounded-lg text-slate-300 transition">
+              Bottom-Right Corner
+            </button>
+          </div>
+        </div>
+
+        <!-- Row 1: Core Layout & Cam Ratio Controls -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <!-- Layout Selection -->
+          <div class="bg-slate-950/60 border border-slate-800 rounded-2xl p-4 flex flex-col justify-between">
+            <label class="block text-xs font-bold text-slate-300 mb-1.5">
+              <i class="fa-solid fa-table-columns text-purple-400 mr-1.5"></i> Video Layout Style
+            </label>
+            <select id="layoutMode" class="w-full bg-slate-900 border border-slate-700 text-xs sm:text-sm rounded-xl px-3 py-2 text-white font-medium" onchange="toggleLayoutView()">
+              <option value="split_cam" selected>Split: Cam Top + Game Bottom</option>
+              <option value="ambient_blur">Ambient Blurred BG (16:9 in 9:16)</option>
+              <option value="center_crop">Center Direct Zoom (Full Portrait)</option>
+            </select>
+            <p class="text-[10px] text-slate-500 mt-2">Stacked portrait or full ambient background.</p>
+          </div>
+
+          <!-- Split Height Ratio -->
+          <div class="bg-slate-950/60 border border-slate-800 rounded-2xl p-4 flex flex-col justify-between">
+            <label class="block text-xs font-bold text-slate-300 mb-1.5">
+              <i class="fa-solid fa-arrows-up-down text-cyan-400 mr-1.5"></i> Split Cam Height Split
+            </label>
+            <select id="camSplitRatio" class="w-full bg-slate-900 border border-slate-700 text-xs sm:text-sm rounded-xl px-3 py-2 text-white font-medium">
+              <option value="38" selected>38% Cam Top / 62% Game Bottom</option>
+              <option value="32">32% Cam Top / 68% Game Bottom</option>
+              <option value="45">45% Cam Top / 55% Game Bottom</option>
+              <option value="50">50% Cam Top / 50% Game Bottom (Half)</option>
+            </select>
+            <p class="text-[10px] text-slate-500 mt-2">Top vs bottom section allocation.</p>
+          </div>
+
+          <!-- Duration -->
+          <div class="bg-slate-950/60 border border-slate-800 rounded-2xl p-4 flex flex-col justify-between">
+            <label class="block text-xs font-bold text-slate-300 mb-1.5">
+              <i class="fa-regular fa-clock text-pink-400 mr-1.5"></i> Clip Duration
+            </label>
+            <select id="clipDuration" class="w-full bg-slate-900 border border-slate-700 text-xs sm:text-sm rounded-xl px-3 py-2 text-white font-medium">
+              <option value="15">15 seconds (High Retention)</option>
+              <option value="30" selected>30 seconds (Standard)</option>
+              <option value="60">60 seconds (Full TikTok)</option>
+            </select>
+            <p class="text-[10px] text-slate-500 mt-2">Length of each extracted clip.</p>
+          </div>
+
+          <!-- Target Clips Count -->
+          <div class="bg-slate-950/60 border border-slate-800 rounded-2xl p-4 flex flex-col justify-between">
+            <label class="block text-xs font-bold text-slate-300 mb-1.5">
+              <i class="fa-solid fa-layer-group text-amber-400 mr-1.5"></i> Highlights to Extract
+            </label>
+            <select id="targetClips" class="w-full bg-slate-900 border border-slate-700 text-xs sm:text-sm rounded-xl px-3 py-2 text-white font-medium">
+              <option value="3">Top 3 Clutch Moments</option>
+              <option value="4" selected>Top 4 Highlights</option>
+              <option value="6">Top 6 Highlights</option>
+              <option value="8">Full Pack (8 Highlights)</option>
+            </select>
+            <p class="text-[10px] text-slate-500 mt-2">Peak audio/heat moments extracted.</p>
+          </div>
+        </div>
+
+        <!-- Row 2: Subtitle Styles, Language & Color Grading Options -->
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <!-- Speech-to-Text Language -->
+          <div class="bg-slate-950/60 border border-slate-800 rounded-2xl p-4 flex flex-col justify-between">
+            <label class="block text-xs font-bold text-slate-300 mb-1.5">
+              <i class="fa-solid fa-language text-cyan-400 mr-1.5"></i> Speech & Subtitle Language
+            </label>
+            <select id="language" class="w-full bg-slate-900 border border-slate-700 text-xs sm:text-sm rounded-xl px-3 py-2 text-white font-medium">
+              <option value="hi" selected>Hindi (हिंदी - Devanagari)</option>
+              <option value="en">English (US/UK)</option>
+              <option value="es">Spanish (Español)</option>
+              <option value="fr">French (Français)</option>
+              <option value="de">German (Deutsch)</option>
+            </select>
+            <p class="text-[10px] text-slate-500 mt-2">Accurate speech recognition.</p>
+          </div>
+
+          <!-- Subtitle Style & Animation -->
+          <div class="bg-slate-950/60 border border-slate-800 rounded-2xl p-4 flex flex-col justify-between">
+            <label class="block text-xs font-bold text-slate-300 mb-1.5">
+              <i class="fa-solid fa-closed-captioning text-amber-400 mr-1.5"></i> Subtitle & Hook Style
+            </label>
+            <select id="subtitlesStyle" class="w-full bg-slate-900 border border-slate-700 text-xs sm:text-sm rounded-xl px-3 py-2 text-white font-medium">
+              <option value="bold_yellow" selected>🔥 Bold Viral Yellow (Large Hook)</option>
+              <option value="neon_cyan">⚡ Neon Cyan Impact (Large Hook)</option>
+              <option value="clean_white">✨ Minimal Bold White</option>
+              <option value="none">No Subtitles / Raw Video</option>
+            </select>
+            <p class="text-[10px] text-slate-500 mt-2">Animated bounce captions + top banner.</p>
+          </div>
+
+          <!-- Color Grading LUT -->
+          <div class="bg-slate-950/60 border border-slate-800 rounded-2xl p-4 flex flex-col justify-between">
+            <label class="block text-xs font-bold text-slate-300 mb-1.5">
+              <i class="fa-solid fa-palette text-pink-400 mr-1.5"></i> Color Grading LUT
+            </label>
+            <select id="colorGrade" class="w-full bg-slate-900 border border-slate-700 text-xs sm:text-sm rounded-xl px-3 py-2 text-white font-medium">
+              <option value="vibrant" selected>Viral Vibrant (+28% Pop)</option>
+              <option value="cinematic">Cinematic Teal & Orange</option>
+              <option value="warm">Golden Stream Warmth</option>
+              <option value="none">Original Colors</option>
+            </select>
+            <p class="text-[10px] text-slate-500 mt-2">Enhance visual contrast and pop.</p>
+          </div>
+        </div>
+
+        <!-- Toggles: Anti-Copyright & GPU -->
+        <div class="flex flex-wrap items-center justify-between gap-4 p-4 rounded-2xl bg-slate-950/50 border border-slate-800/80 text-xs sm:text-sm">
+          <label class="flex items-center space-x-2.5 cursor-pointer">
+            <input type="checkbox" id="antiCopyright" checked class="w-4 h-4 rounded text-purple-600 bg-slate-900 border-slate-700 focus:ring-purple-500" />
+            <span class="text-slate-200 font-medium">
+              <i class="fa-solid fa-shield-halved text-emerald-400 mr-1"></i> Anti-Copyright Evasion Shield
+            </span>
+            <span class="text-[11px] text-slate-400 hidden sm:inline">(Subtle pitch & pixel alteration to bypass ContentID)</span>
+          </label>
+
+          <label class="flex items-center space-x-2.5 cursor-pointer">
+            <input type="checkbox" id="useGpu" checked class="w-4 h-4 rounded text-purple-600 bg-slate-900 border-slate-700 focus:ring-purple-500" />
+            <span class="text-slate-200 font-medium">
+              <i class="fa-solid fa-microchip text-purple-400 mr-1"></i> NVIDIA GTX 1650 NVENC GPU
+            </span>
+          </label>
+        </div>
+
+        <!-- Action Button -->
+        <button 
+          type="submit" 
+          id="submitBtn"
+          class="w-full py-4 px-6 rounded-2xl font-bold text-white bg-gradient-to-r from-purple-600 via-pink-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 shadow-xl shadow-purple-600/30 transition duration-200 flex items-center justify-center space-x-3 text-base active:scale-[0.99]"
+        >
+          <i class="fa-solid fa-wand-magic-sparkles text-lg"></i>
+          <span>Process & Export Ready 9:16 Cuts</span>
+        </button>
+      </form>
+
+      <!-- Processing Status Indicator -->
+      <div id="statusCard" class="hidden mt-6 pt-6 border-t border-slate-800">
+        <div class="flex items-center space-x-4">
+          <div class="relative flex items-center justify-center">
+            <div class="w-12 h-12 border-4 border-purple-500/20 border-t-purple-500 rounded-full animate-spin"></div>
+            <i class="fa-solid fa-scissors text-purple-400 absolute text-sm animate-pulse"></i>
+          </div>
+          <div class="flex-1 min-w-0">
+            <div class="flex items-center justify-between">
+              <p id="statusHeading" class="text-xs font-bold text-purple-400 uppercase tracking-widest">CONNECTING</p>
+              <span class="text-[10px] font-semibold px-2 py-0.5 rounded bg-purple-500/20 text-purple-300 border border-purple-500/30">Direct Stream Seeking</span>
+            </div>
+            <p id="statusMsg" class="text-sm text-slate-300 font-medium truncate mt-0.5">Resolving audio and video streams...</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Error State -->
+      <div id="errorBox" class="hidden mt-4 p-4 rounded-xl bg-red-950/40 border border-red-800/60 text-red-300 text-sm flex items-start space-x-3">
+        <i class="fa-solid fa-triangle-exclamation mt-0.5 text-red-400"></i>
+        <div id="errorMsg" class="break-words flex-1"></div>
+      </div>
+    </div>
+
+    <!-- Output Showcase Section -->
+    <div id="resultsSection" class="hidden mt-12 space-y-6">
+      <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+        <div>
+          <h3 class="text-2xl font-black text-white flex items-center">
+            <i class="fa-solid fa-fire text-amber-400 mr-2.5"></i> Generated 9:16 Highlights
+          </h3>
+          <p class="text-xs text-slate-400">Exported in 1080x1920 with full audio, subtitles, and styling.</p>
+        </div>
+        <span class="text-xs px-3 py-1 bg-emerald-500/10 text-emerald-300 border border-emerald-500/30 rounded-full font-semibold">
+          <i class="fa-solid fa-check mr-1.5"></i> Ready for TikTok/Reels/Shorts
+        </span>
+      </div>
+
+      <div id="clipsGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6"></div>
+    </div>
+
+  </main>
+
+  <footer class="py-6 border-t border-slate-900/80 text-center text-xs text-slate-500">
+    VerticalStream AI Ultimate Studio • All Features & Options Restored
+  </footer>
+
+  <script>
+    let cropState = {
+      x: 1.0,
+      y: 1.5,
+      w: 33.0,
+      h: 36.0
+    };
+
+    function updateBoxUI() {
+      const box = document.getElementById('camHighlightBox');
+      box.style.left = cropState.x + '%';
+      box.style.top = cropState.y + '%';
+      box.style.width = cropState.w + '%';
+      box.style.height = cropState.h + '%';
+    }
+
+    function toggleLayoutView() {
+      const mode = document.getElementById('layoutMode').value;
+      const cropContainer = document.getElementById('visualCropContainer');
+      if (mode === 'split_cam') {
+        cropContainer.classList.remove('hidden');
+      } else {
+        cropContainer.classList.add('hidden');
+      }
+    }
+
+    function setPreset(type) {
+      if (type === 'top_left') {
+        cropState = { x: 1.0, y: 1.5, w: 33.0, h: 36.0 };
+      } else if (type === 'top_right') {
+        cropState = { x: 65.0, y: 1.5, w: 33.0, h: 36.0 };
+      } else if (type === 'bottom_left') {
+        cropState = { x: 1.0, y: 62.0, w: 33.0, h: 36.0 };
+      } else if (type === 'bottom_right') {
+        cropState = { x: 65.0, y: 62.0, w: 33.0, h: 36.0 };
+      }
+      updateBoxUI();
+    }
+
+    document.getElementById('probeBtn').addEventListener('click', async () => {
+      const url = document.getElementById('streamUrl').value.trim();
+      if (!url) {
+        alert('Please enter a stream URL first.');
+        return;
+      }
+      const probeBtn = document.getElementById('probeBtn');
+      probeBtn.innerHTML = `<i class="fa-solid fa-spinner fa-spin mr-1"></i> Detecting Streamer Cam...`;
+
+      try {
+        const res = await fetch('/api/probe-frame', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ url: url })
+        });
+        if (!res.ok) throw new Error('Could not fetch stream snapshot.');
+        const data = await res.json();
+
+        const img = document.getElementById('streamSnapshot');
+        img.src = data.image_url;
+        img.classList.remove('hidden');
+        document.getElementById('noSnapshotMsg').classList.add('hidden');
+
+        cropState = data.detected_cam;
+        updateBoxUI();
+        probeBtn.innerHTML = `<i class="fa-solid fa-check text-emerald-400 mr-1"></i> Cam Located!`;
+      } catch (err) {
+        alert(err.message || 'Failed to detect stream preview.');
+        probeBtn.innerHTML = `<i class="fa-solid fa-wand-magic-sparkles mr-1"></i> Auto-Detect Cam Box from Stream`;
+      }
+    });
+
+    const form = document.getElementById('clipForm');
+    const submitBtn = document.getElementById('submitBtn');
+    const statusCard = document.getElementById('statusCard');
+    const statusHeading = document.getElementById('statusHeading');
+    const statusMsg = document.getElementById('statusMsg');
+    const errorBox = document.getElementById('errorBox');
+    const errorMsg = document.getElementById('errorMsg');
+    const resultsSection = document.getElementById('resultsSection');
+    const clipsGrid = document.getElementById('clipsGrid');
+    let pollInterval = null;
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const url = document.getElementById('streamUrl').value.trim();
+      const layoutMode = document.getElementById('layoutMode').value;
+      const camSplitRatio = parseInt(document.getElementById('camSplitRatio').value);
+      const language = document.getElementById('language').value;
+      const subtitlesStyle = document.getElementById('subtitlesStyle').value;
+      const colorGrade = document.getElementById('colorGrade').value;
+      const clipDuration = parseInt(document.getElementById('clipDuration').value);
+      const targetClips = parseInt(document.getElementById('targetClips').value);
+      const antiCopyright = document.getElementById('antiCopyright').checked;
+      const useGpu = document.getElementById('useGpu').checked;
+
+      if (!url) return;
+
+      errorBox.classList.add('hidden');
+      resultsSection.classList.add('hidden');
+      clipsGrid.innerHTML = '';
+      statusCard.classList.remove('hidden');
+      statusHeading.innerText = 'CONNECTING';
+      statusMsg.innerText = 'Connecting directly to stream and seeking highlights...';
+      submitBtn.disabled = true;
+      submitBtn.classList.add('opacity-50', 'cursor-not-allowed');
+
+      try {
+        const res = await fetch('/api/clip', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            url: url,
+            target_clips: targetClips,
+            clip_duration: clipDuration,
+            layout_mode: layoutMode,
+            cam_x: cropState.x,
+            cam_y: cropState.y,
+            cam_w: cropState.w,
+            cam_h: cropState.h,
+            cam_split_ratio: camSplitRatio,
+            language: language,
+            color_grade: colorGrade,
+            subtitles_style: subtitlesStyle,
+            anti_copyright: antiCopyright,
+            use_gpu: useGpu
+          })
+        });
+
+        if (!res.ok) throw new Error('Failed to start processing job.');
+        const data = await res.json();
+        
+        if (pollInterval) clearInterval(pollInterval);
+        pollInterval = setInterval(() => checkJobStatus(data.job_id), 1800);
+      } catch (err) {
+        showError(err.message || 'Error communicating with engine backend.');
+      }
+    });
+
+    async function checkJobStatus(jobId) {
+      try {
+        const res = await fetch(`/api/job/${jobId}`);
+        if (!res.ok) throw new Error('Lost connection to task worker.');
+        const job = await res.json();
+
+        statusHeading.innerText = job.status.toUpperCase();
+        statusMsg.innerText = job.message || 'Processing frames...';
+
+        if (job.status === 'completed') {
+          clearInterval(pollInterval);
+          statusCard.classList.add('hidden');
+          submitBtn.disabled = false;
+          submitBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+          renderClips(job.clips);
+        } else if (job.status === 'failed') {
+          clearInterval(pollInterval);
+          statusCard.classList.add('hidden');
+          submitBtn.disabled = false;
+          submitBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+          showError(job.error || 'Failed to process stream.');
+        }
+      } catch (err) {
+        clearInterval(pollInterval);
+        statusCard.classList.add('hidden');
+        submitBtn.disabled = false;
+        submitBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+        showError(err.message);
+      }
+    }
+
+    function renderClips(clips) {
+      if (!clips || clips.length === 0) {
+        showError('No highlight clips could be generated from the given video.');
+        return;
+      }
+
+      clipsGrid.innerHTML = '';
+      clips.forEach(clip => {
+        const card = document.createElement('div');
+        card.className = "bg-[#0b1120] border border-slate-800 rounded-2xl overflow-hidden flex flex-col shadow-2xl hover:border-purple-500/50 transition duration-300";
+        card.innerHTML = `
+          <!-- 9:16 Video Player -->
+          <div class="relative w-full aspect-[9/16] bg-black">
+            <video 
+              src="${clip.url}" 
+              controls 
+              preload="metadata"
+              playsinline
+              class="w-full h-full object-contain"
+            ></video>
+            <div class="absolute top-3 left-3 bg-slate-950/80 backdrop-blur-md px-2.5 py-1 rounded-md text-[11px] text-white font-bold flex items-center space-x-1.5 border border-slate-700/50">
+              <i class="fa-solid fa-stopwatch text-amber-400"></i>
+              <span>${clip.start_time}</span>
+            </div>
+            <div class="absolute top-3 right-3 bg-purple-950/80 backdrop-blur-md px-2.5 py-1 rounded-md text-[10px] text-purple-300 font-bold border border-purple-500/40">
+              ${clip.layout}
+            </div>
+          </div>
+
+          <div class="p-4 flex flex-col justify-between flex-1 space-y-3 bg-slate-950/40">
+            <div>
+              <div class="flex items-center justify-between mb-1">
+                <h4 class="font-bold text-white text-sm truncate">${clip.title}</h4>
+              </div>
+              <div class="flex items-center space-x-2 text-[11px] text-slate-400">
+                <span>${clip.duration}</span>
+                <span>•</span>
+                <span>${clip.size_mb} MB</span>
+                <span>•</span>
+                <span class="text-emerald-400 font-semibold"><i class="fa-solid fa-volume-high mr-1"></i>Clean Audio</span>
+              </div>
+            </div>
+            <a 
+              href="${clip.url}" 
+              download="${clip.filename}" 
+              class="w-full py-2.5 px-3 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 text-white rounded-xl text-xs font-bold flex items-center justify-center space-x-2 transition shadow-lg shadow-purple-600/20 active:scale-95"
+            >
+              <i class="fa-solid fa-cloud-arrow-down"></i>
+              <span>Download Ready 9:16</span>
+            </a>
+          </div>
+        `;
+        clipsGrid.appendChild(card);
+      });
+
+      resultsSection.classList.remove('hidden');
+      resultsSection.scrollIntoView({ behavior: 'smooth' });
+    }
+
+    function showError(msg) {
+      errorMsg.innerText = msg;
+      errorBox.classList.remove('hidden');
+    }
+  </script>
+</body>
+</html>
